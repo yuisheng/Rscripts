@@ -1,10 +1,9 @@
 #diagnosw fluxes July 2015
-#change line 5,6,7,11,12
 
 #Set parameters for each model run
-fpath.out <- "/home/zhen.zhang/lpj-transient2015_cflux_MERRA2_vs_MERRA2_MON_version1.pdf"
-dirs.lpj <- c("/mnt/lustrefs/store/zhen.zhang/output/MERRA2/MERRA2_2016_USDA_MLIT_PERMAFROST/merge/","/mnt/lustrefs/store/zhen.zhang/output/MERRA2/MERRA2_2015_USDA_MLIT_PERMAFROST_MONTHLY/merge/")
-legend.label <- c("MERRA2","MERRA2_MONTHLY")
+fpath.out <- "/home/zhen.zhang/lpj-transient2015_cflux_MERRA2_MLIT_vs_CRU_MLIT_version2.pdf"
+dirs.lpj <- c("/mnt/lustrefs/store/zhen.zhang/output/MERRA2/MERRA2_2015_USDA_MLIT_PERMAFROST/merge/","/mnt/lustrefs/store/zhen.zhang/output/CRU/CRU_2015_USDA_MLIT_PERMAFROST/merge/")
+legend.label <- c("MERRA2_PERMAFROST","CRU")
 main.label <- c("Biomass","GPP","NPP","RH","FireC","LUC","Harvest","Estab","SoilC", "LitterC","NEE")
 varlist <- c("vegc","mgpp","mnpp","mrh","firec","flux_luc","flux_harvest","flux_estab","soilc","litc")
 ismonthly <- c(F,T,T,T,F,F,F,F,F,F)

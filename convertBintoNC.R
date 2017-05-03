@@ -8,11 +8,11 @@ library(ncdf)
 library(hash)
 
 #Set parameters
-fpath.lpj <- "/mnt/lustrefs/store/zhen.zhang/output/CRU/CRU_2015_USDA_MLIT_PERMAFROST/merge/"
-varName <- "ch4e"
-ismonthly <- T   # for determine if output is monthly or not
-startYear <- 1901
-endYear <- 2015
+fpath.lpj <- "/Users/zhang/Research/data/output/MERRA2/MERRA2_2016_USDA_DLIT_PERMAFROST/"
+varName <- "dch4e"
+tstep <- 1   # for determine the output time step (1: daily;2: monthly;3: yearly)
+startYear <- 2015
+endYear <- 2016
 
 #Fixed parameters
 conversionFactor <- 1
@@ -30,9 +30,10 @@ filename <- paste(varName, ".bin",sep="")
 # naval <- -99999
 # ncell.tot <- 62482
 
-#For CRU
+#For historical
 outNyears <- length(startYear:endYear)
 ntstep <- 12
+ndays <- 365
 nmonths <- 12
 nyear <- endYear - startYear + 1
 naval <- -99999
@@ -45,12 +46,13 @@ longname_hash <- hash()
 #Now we have 62 outputs
 #List of variable in names and out names to loop through
 #LPJ output names to be read
+varNameDaily <- c("dch4e","dgpp","dnpp","drh","dsm1","dsm2")
 varNameMonthly <- c("mswc1","mswc2","mrunoff","mdischarge","mevap","mtransp",
                     "mgpp","mra","mnpp","mrh",
                     "msoiltemp","mtemp_soil","mtsoil_0","mtsoil_10","mtsoil_25","mtsoil_50","mtsoil_100","mtsoil_150","mtsoil_200",
                     "msnowpack","msnowdepth","frozen_days",
                     "mthaw_depth","mFwater","mFice","mice_frac1","mice_frac2",
-                    "wtd","wet_frac","ch4e","ch4o"
+                    "wtd","wet_frac","mch4e","ch4o"
 )
 varNameAnnual <- c("vegc","litc","soilc","firec","flux_luc") #, "flux_estab","flux_harvest","firef")
 
@@ -63,12 +65,13 @@ varNameDeprecated <- c("minterc","mirrig_wd","mpet",    # monthly output
 
 
 #Official output variable names MUST KEEP ORDER SAME AS BELOW FOR VARxxx
+outNameDaily   <- c("dch4e","dgpp","dnpp","drh","dsm1","dsm2")
 outNameMonthly <-    c("mswc1","mswc2","mrunoff","mdischarge","mevap","mtransp",
                        "mgpp","mra","mnpp","mrh",
                        "msoiltemp","mtemp_soil","mtsoil_0","mtsoil_10","mtsoil_25","mtsoil_50","mtsoil_100","mtsoil_150","mtsoil_200",
                        "msnowpack","msnowdepth","frozen_days",
                        "mthaw_depth","mFwater","mFice","mice_frac1","mice_frac2",
-                       "wtd","wet_frac","ch4e","ch4o")
+                       "wtd","wet_frac","mch4e","ch4o")
 outNameAnnual <-     c("cVeg","cLitter","cSoil","fFire","fLuc")  #,"fGrazing","burntArea")
 outNameAnnualPFT <-  c("pft_alai", "pft_agpp","pft_agc","pft_atransp","landCoverFrac")
 outNameMonthlyPFT <- c("mpft_ci","mpft_gc","mpft_gpp","mpft_lai","mpft_transp")
@@ -77,6 +80,7 @@ outNameDeprecated <- c("minterc","mirrig_wd","mpet",    # monthly output
                        "pft_bimonfpar","pft_fO3uptake","pft_harvest","pft_maxphenday","pft_mort","pft_nind","pft_npp","pft_rharvest","pft_vegc"  #PFT OUTPUT
 )
 
+unitNameDaily  <- c("g CH4 /m2 /day","kg C m-2 month-1","kg C m-2 month-1","kg C m-2 month-1","fraction","fraction")
 unitNameMonthly <- c("fraction","fraction","mm month-1","mm month-1","mm month-1","mm h2o m-2 month-1",
                     "kg C m-2 month-1","kg C m-2 month-1","kg C m-2 month-1","kg C m-2 month-1",
                     "degreesC","degreesC","degreesC","degreesC","degreesC","degreesC","degreesC","degreesC","degreesC",
@@ -94,6 +98,7 @@ unitNameDeprecated <- c("NA","NA","NA",    # monthly output
                        "NA","NA","NA","NA","NA","NA","NA","NA","NA"  #PFT OUTPUT
 )
 
+longNameDaily <- c("CH4 emission","Gross Primary Production","Net Primary Production","Heterotrophic Respiration","Relative Soil Moisture in Upper Layer","Relative Soil Moisture in Lower Layer")
 longNameMonthly <- c("Relative Soil Moisture in Upper Layer","Relative Soil Moisture in Lower Layer","Total Runoff","Total Discharge","Total Evapo-Transpiration","Transpiration",
                     "Gross Primary Production","Autotrophic respiration","Net Primary Production","Heterotrophic Respiration",
                     "Mean Temperature of Soil","Mean Temperature of Soil (Permafrost)","Soil Temperature at 0 cm","Soil Temperature at 10 cm","Soil Temperature at 25 cm","Soil Temperature at 50 cm","Soil Temperature at 100 cm","Soil Temperature at 150 cm","Soil Temperature at 200 cm",
@@ -110,6 +115,11 @@ longNameDeprecated <- c("minterc","mirrig_wd","mpet",    # monthly output
                        "pft_bimonfpar","pft_fO3uptake","pft_harvest","pft_maxphenday","pft_mort","pft_nind","pft_npp","pft_rharvest","pft_vegc"  #PFT OUTPUT
 )
 
+for(i in 1:length(varNameDaily)){
+  unit_hash[varNameDaily[i]] <- unitNameDaily[i]
+  outname_hash[varNameDaily[i]] <- outNameDaily[i]
+  longname_hash[varNameDaily[i]] <- longNameDaily[i]
+}
 
 for(i in 1:length(varNameMonthly)){
   unit_hash[varNameMonthly[i]] <- unitNameMonthly[i]
@@ -142,12 +152,12 @@ for(i in 1:length(varNameDeprecated)){
 
 
 #Set up the LPJ output read function
-readFile <- function(infile, cell.tot, nmonths, year){
+readFile <- function(infile, cell.tot, nlength, year){
   fileName <- file(infile, 'rb')
-  seek(fileName, 4*cell.tot*nmonths*(year-1))
-  binOut <- readBin(fileName, double(), size=4, n = cell.tot*nmonths)
+  seek(fileName, 4*cell.tot*nlength*(year-1))
+  binOut <- readBin(fileName, double(), size=4, n = cell.tot*nlength)
   close(fileName)
-  return(matrix(binOut, ncell.tot, nmonths))
+  return(matrix(binOut, ncell.tot, nlength))
 }
 
 
@@ -167,14 +177,18 @@ x <- dim.def.ncdf( "lon", "degrees_east", lonseq)
 y <- dim.def.ncdf( "lat", "degrees_north", latseq)
 nsoil <- dim.def.ncdf( "soil", paste("soil id ", 1:2, sep=""), 0:1)
 npft <- dim.def.ncdf( "pft", paste("pft id ", 1:9, sep=""), 0:8)
+tday <- dim.def.ncdf("time",paste("days since", startYear, "-01-01",sep=""), 0:(outNyears*ndays-1))
 tmonth <- dim.def.ncdf( "time", paste("months since ", startYear, "-01-01", sep=""), 0:(outNyears*nmonths-1))
 tyear <- dim.def.ncdf( "time", paste("years since ", startYear, "-01-01", sep=""), 0:(outNyears-1))
 
 
 #Make ncdf
-if(ismonthly){
+if(tstep==1){
+  varNC <- var.def.ncdf(varName, hash::values(unit_hash[varName]), list(x,y,tday), naval, longname=hash::values(longname_hash[varName]), prec="double")
+  ncnew <- create.ncdf( paste(fpath.lpj, "LPJ_d", hash::values(outname_hash[varName]),".nc", sep=''), varNC)    
+}else if(tstep==2){
   varNC <- var.def.ncdf(varName, hash::values(unit_hash[varName]), list(x,y,tmonth), naval, longname=hash::values(longname_hash[varName]), prec="double")
-  ncnew <- create.ncdf( paste(fpath.lpj, "LPJ_", hash::values(outname_hash[varName]),".nc", sep=''), varNC)    
+  ncnew <- create.ncdf( paste(fpath.lpj, "LPJ_m", hash::values(outname_hash[varName]),".nc", sep=''), varNC)    
 }else{
   varNC <- var.def.ncdf(varName, hash::values(unit_hash[varName]), list(x,y,tyear), naval, longname=hash::values(longname_hash[varName]), prec="double")
   ncnew <- create.ncdf( paste(fpath.lpj, "LPJ_a", hash::values(outname_hash[varName]),".nc", sep=''), varNC)    
@@ -185,7 +199,20 @@ for(year in (startYear:endYear)-(startYear-1)){
   yearID <- which(year == (startYear:endYear)-(startYear-1))
 
   #Set up empty array
-  if(ismonthly){
+  if(tstep==1){
+    #For daily outputs
+    varData <- readFile(paste(fpath.lpj, filename, sep=''), ncell.tot, ndays, year) / conversionFactor
+    varData[is.na(varData)] <- -99999
+    varData[is.infinite(varData)] <- -99999
+    
+    varArray <- array(naval, c(length(lonseq),length(latseq),ndays))
+    for(day in 1:ndays){
+      for(cell in 1:ncell.tot){
+        varArray[lonmatch[cell], latmatch[cell], day] <- varData[cell,day]
+      }
+      put.var.ncdf( ncnew, varNC, start=c(1,1,day+(yearID-1)*ndays), count=c(-1,-1,1) , varArray[,,day])
+    }
+  }else if(tstep==2){
     #For monthly outputs
     varData <- readFile(paste(fpath.lpj, filename, sep=''), ncell.tot, nmonths, year) / conversionFactor
     varData[is.na(varData)] <- -99999

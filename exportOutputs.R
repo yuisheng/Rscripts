@@ -1,23 +1,20 @@
 #Summerize Time Series of LPJ outputs and export it as R object
 #Zhen 21st Sep. 2016
-#minterc.bin and pft_* were not summerized
+#minterc.bin, pft_* and firec were not summerized
 
 #Set Parameters
-dirs.lpj <- c(
-              "/mnt/lustrefs/store/zhen.zhang/output/CRU/CRU_2015_USDA_NEWLIT_PERMAFROST/merge/",
-              "/mnt/lustrefs/store/zhen.zhang/output/MERRA2/MERRA2_2016_USDA_MLIT_PERMAFROST/merge/",
-              "/mnt/lustrefs/store/zhen.zhang/output/ERA-Interim/ERA_2016_USDA_MLIT_PERMAFROST/merge/"
-              )
+dirs.lpj <- c("/mnt/lustrefs/store/zhen.zhang/output/CRU/MERRA2_2015_USDA_DLIT/merge/",
+              "/mnt/lustrefs/store/zhen.zhang/output/CRU/CRU_2015_USDA_DLIT_NOFIRE/merge/")
 
-varlist <- c("ch4e","mnpp","mrh","firec","flux_luc","flux_harvest","flux_estab","mgpp","litc","soilc","vegc",
+varlist <- c("mnpp","mrh","firec","flux_luc","flux_harvest","flux_estab","mgpp","litc","soilc","vegc",
              "msnowpack","mra","mpet","msoiltemp","mswc1","mswc2","mevap","mdischarge","mrunoff","mtransp"
              )
-ismonthly <- c(T,T,T,F,F,F,F,T,F,F,F,
+ismonthly <- c(T,T,F,F,F,F,T,F,F,F,
                T,T,T,T,T,T,T,T,T,T)
-isareal <- c(T,T,T,T,T,T,T,T,T,T,T,
+isareal <- c(T,T,T,T,T,T,T,T,T,T,
              F,F,F,F,F,F,F,F,F,F)
 # divided by varfactor
-varfacter <- c(10^12,10^15,10^15,10^15,10^15,10^15,10^15,10^15,10^15,10^15,10^15,
+varfacter <- c(10^15,10^15,10^15,10^15,10^15,10^15,10^15,10^15,10^15,10^15,
                1,1,1,1,1,1,1,1,1,1)
 startyear <- 1901
 endyear <- 2015
