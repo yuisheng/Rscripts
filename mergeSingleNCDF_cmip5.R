@@ -6,20 +6,17 @@ library(sp)
 library(ncdf)
 library(hash)
 
-#options(echo=TRUE) #if you want see commands in output file
-#args <- commandArgs(trailingOnly = TRUE)
-#print(args)
-#varname <- args[1]
-#rcp <- args[2]
-#ismonthly <- (args[3] > 0)
-#rm(args)
+options(echo=TRUE) #if you want see commands in output file
+args <- commandArgs(trailingOnly = TRUE)
+print(args)
+varname <- args[1]
+rcp <- args[2]
+ismonthly <- (args[3] > 0)
+rm(args)
 
-varname <- "mice_frac1"
-rcp <- c("rcp26","rcp45","rcp60","rcp85")
-ismonthly <- TRUE
-
+#rcp <- c("rcp26","rcp45","rcp60","rcp85")
 for (i in 1:length(rcp)){
-  cmip5_path <- paste("/mnt/lustrefs/store/zhen.zhang/output/CMIP5_CH4E/", rcp[i],"/", sep='') 
+  cmip5_path <- paste("/mnt/lustrefs/work/zhen.zhang/output/", rcp[i],"/", sep='') 
   model_list <- dir(cmip5_path)
   for (j in 1:length(model_list)){
     fpath.lpj <- paste(cmip5_path,model_list[j],"/merge/", sep="")

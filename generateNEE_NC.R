@@ -8,9 +8,9 @@ library(ncdf)
 library(hash)
 
 #Set parameters
-fpath.lpj <- "/mnt/lustrefs/store/zhen.zhang/output/CRU/CRU_2015_USDA_MLIT_PERMAFROST/merge/"
+fpath.lpj <- "/Users/zhang/Research/data/output/MERRA2/MERRA2_2016_USDA_MLIT_PERMAFROST/merge/"
 startYear <- 1901
-endYear <- 2015
+endYear <- 2016
 
 #Fixed parameters
 conversionFactor <- 1
@@ -18,10 +18,8 @@ outNyears <- length(startYear:endYear)
 ntstep <- 12
 nmonths <- 12
 nyear <- endYear - startYear + 1
-naval <- 9.99999e14
+naval <- -99999
 ncell.tot <- file.info(paste(fpath.lpj,'grid.out',sep=''))$size/4
-
-dayofmonth <- c(31,28,31,30,31,30,31,31,30,31,30,31)
 
 #Parameters
 #For CMIP5
@@ -67,7 +65,7 @@ tyear <- dim.def.ncdf( "time", paste("years since ", startYear, "-01-01", sep=""
 
 
 #Make ncdf
-varNC <- var.def.ncdf("emco2nep", "kg C m^-2 s^-1", list(x,y,tmonth), naval, "Net Ecosystem Exchange", prec="double")
+varNC <- var.def.ncdf("mnee", "g C m-2 month-1", list(x,y,tmonth), naval, "Net Ecosystem Exchange", prec="double")
 ncnew <- create.ncdf( paste(fpath.lpj, "LPJ_NEE.nc", sep=''), varNC)    
 
 #Loop through years
@@ -80,23 +78,23 @@ for(year in 1:(endYear - startYear +1)){
   varData_harvest <- readFile(paste(fpath.lpj, "flux_harvest.bin", sep=''), ncell.tot, 1, year) / conversionFactor
   varData_estab <- readFile(paste(fpath.lpj, "flux_estab.bin", sep=''), ncell.tot, 1, year) / conversionFactor
 
-  varData_rh[is.na(varData_rh)] <- naval
-  varData_rh[is.infinite(varData_rh)] <- naval
-  varData_npp[is.na(varData_npp)] <- naval
-  varData_npp[is.infinite(varData_npp)] <- naval
-  varData_firec[is.na(varData_firec)] <- naval
-  varData_firec[is.infinite(varData_firec)] <- naval
-  varData_luc[is.na(varData_luc)] <- naval
-  varData_luc[is.infinite(varData_luc)] <- naval
-  varData_harvest[is.na(varData_harvest)] <- naval
-  varData_harvest[is.infinite(varData_harvest)] <- naval
-  varData_estab[is.na(varData_estab)] <- naval
-  varData_estab[is.infinite(varData_estab)] <- naval
+  varData_rh[is.na(varData_rh)] <- -99999
+  varData_rh[is.infinite(varData_rh)] <- -99999
+  varData_npp[is.na(varData_npp)] <- -99999
+  varData_npp[is.infinite(varData_npp)] <- -99999
+  varData_firec[is.na(varData_firec)] <- -99999
+  varData_firec[is.infinite(varData_firec)] <- -99999
+  varData_luc[is.na(varData_luc)] <- -99999
+  varData_luc[is.infinite(varData_luc)] <- -99999
+  varData_harvest[is.na(varData_harvest)] <- -99999
+  varData_harvest[is.infinite(varData_harvest)] <- -99999
+  varData_estab[is.na(varData_estab)] <- -99999
+  varData_estab[is.infinite(varData_estab)] <- -99999
 
   varArray <- array(naval, c(length(lonseq),length(latseq),nmonths))
   for(month in 1:nmonths){
     for(cell in 1:ncell.tot){
-      varArray[lonmatch[cell], latmatch[cell], month] <- (varData_rh[cell,month] - varData_npp[cell,month] + varData_firec[cell,1]/12 + varData_luc[cell,1]/12 + varData_harvest[cell,1]/12 - varData_estab[cell,1]/12)/(dayofmonth[month]*24*60*60*1000) #convert to kg/s
+      varArray[lonmatch[cell], latmatch[cell], month] <- varData_rh[cell,month] - varData_npp[cell,month] + varData_firec[cell,1]/12 + varData_luc[cell,1]/12 + varData_harvest[cell,1]/12 - varData_estab[cell,1]/12
     }
     
     put.var.ncdf( ncnew, varNC, start=c(1,1,month+(year-1)*nmonths), count=c(-1,-1,1) , varArray[,,month])

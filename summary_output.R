@@ -19,7 +19,7 @@ isareal <- (args[4] > 0)  # 0 or 1
 rm(args)
 
 #Calculate area weights
-zonedir <- "/mnt/lustrefs/work/zhen.zhang/data/china_mask.nc"
+zonedir <- "/mnt/lustrefs/work/zhen.zhang/data/regions_mask.nc"
 zones <- raster(zonedir)
 cellarea <- raster::area(zones)
 transcomreg <- c("Boreal North America","Temperate North America", "Tropical South America", "Temperate South America", "North Africa", "South Africa", "Boreal Eurasia", "Temperate Eurasia", "Tropical Asia", "Australia", "Europe", "North Africa semi-arid", "South Africa semi-arid")
@@ -29,7 +29,7 @@ transcomreg <- c("Boreal North America","Temperate North America", "Tropical Sou
 
 #rcpList <- c("rcp26","rcp45","rcp60","rcp85")
 for(i in 1:length(rcp)){
-  cmip5_path <- paste("/mnt/lustrefs/store/zhen.zhang/output/CMIP5_CH4E/",rcp[i],"/", sep="")
+  cmip5_path <- paste("/mnt/lustrefs/work/zhen.zhang/output/",rcp[i],"/", sep="")
   
   #driving_path <- paste("/mnt/lustrefs/store/poulterlab/Climate/Processed/Global/CMIP5/pr/",rcp[i],"-wsl/",sep="")
   
@@ -54,8 +54,8 @@ for(i in 1:length(rcp)){
     if(!file.exists(outpath)){
       dir.create(outpath)
     }
-    foutpath <- paste(outpath,"/",varname,"_",caltype,"_chinaregion.txt",sep='')
-    write(varnc_zonal, foutpath, ncolumns=10, sep=",")
+    foutpath <- paste(outpath,"/",varname,"_",caltype,"_wslregion.txt",sep='')
+    write(varnc_zonal, foutpath, ncolumns=5, sep=",")
     #read method: read.table("sample.txt",header=T,sep=",")
     
     print(model_list[j])

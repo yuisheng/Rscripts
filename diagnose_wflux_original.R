@@ -1,8 +1,8 @@
 #Check fluxes July 2015
 
 #Set parameters for each model run
-fpath.out <- "/home/zhen.zhang/lpj-transient2015_wflux_MERRA2_vs_CRU_version3.pdf"
-dirs.lpj <- c("/mnt/lustrefs/store/zhen.zhang/output/MERRA2/MERRA2_2016_USDA_MLIT_PERMAFROST/merge/","/mnt/lustrefs/store/zhen.zhang/output/CRU/CRU_2015_USDA_MLIT_PERMAFROST/merge/")
+fpath.out <- "/home/zhen.zhang/lpj-transient2015_wflux_MERRA2_vs_CRU_version2.pdf"
+dirs.lpj <- c("/mnt/lustrefs/store/zhen.zhang/output/MERRA2/MERRA2_2015_USDA_MLIT_PERMAFROST/merge/","/mnt/lustrefs/store/zhen.zhang/output/CRU/CRU_2015_USDA_MLIT_PERMAFROST/merge/")
 legend.label <- c("MERRA2_PERMAFROST","CRU")
 main.label <- c("Soil Moisture top","Soil Moisture bot","Snow Pack","PET","Soil Temp","Water Stress","EVAP","Runoff","TRANSP", "Discharge","INTERC")
 varlist <- c("mswc1","mswc2","msnowpack","mpet","msoiltemp","waterstress","mevap","mrunoff","mtransp","mdischarge","minterc")
