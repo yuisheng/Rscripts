@@ -9,16 +9,20 @@ library(sp)
 library(ncdf)
 library(hash)
 
+is.leapyear <- function(year){
+      #http://en.wikipedia.org/wiki/Leap_year
+      return(((year %% 4 == 0) & (year %% 100 != 0)) | (year %% 400 == 0))
+}
 
 
 #Set parameters
-fpath.lpj <- "/Users/zhang/Research/data/output/MERRA2/MERRA2_2016_USDA_DLIT_PERMAFROST/merge/"
+fpath.lpj <- "/mnt/lustrefs/store/zhen.zhang/output/ERA-Interim/ERA_2016_USDA_DLIT_PERMAFROST/merge/"
 #This is start year of binary output of LPJ
 startYear <- 1901
 endYear <- 2016
 
 # Start year of daily output
-dstartYear <- 2014
+dstartYear <- 1980
 dendYear <- 2016
 dlength <- length(seq(ISOdate(dstartYear,1,1),ISOdate(dendYear,12,31),'days'))
 
@@ -67,10 +71,7 @@ tyear <- dim.def.ncdf( "time", paste("years since ", startYear, "-01-01 00:00:00
 
 #Make ncdf
 varCH4ENC <- var.def.ncdf("CH4tot", "kg C m^-2 s^-1", list(x,y,tday), naval, "Total Wetland CH4 emission", prec="double")
-varNEPNC  <- var.def.ncdf("emco2nep","kg C m^-2 s^-1", list(x,y,tday),naval,"Net ecosystem carbon production over land",prec="double")
-
 ncnew.ch4e <- create.ncdf( paste(fpath.lpj, "LPJ_ch4e_daily_GEOS_",dstartYear,"-",dendYear,".nc", sep=''), varCH4ENC)
-ncnew.nep <- create.ncdf( paste(fpath.lpj, "LPJ_nep_daily_GEOS_",dstartYear,"-",dendYear,".nc", sep=''), varNEPNC)
 
 #Loop through years
 for(year in dstartYear:dendYear){
@@ -84,55 +85,23 @@ for(year in dstartYear:dendYear){
   varData.dch4e[is.infinite(varData.dch4e)] <- naval
   varArray.dch4e <- array(naval, c(length(lonseq),length(latseq),ndays))
 
-  varData.dnpp <- readFile(paste(fpath.lpj, "dnpp.bin", sep=''), ncell.tot, ndays, dyearID)/conversionFactor
-  varData.dnpp[is.na(varData.dnpp)] <- naval
-  varData.dnpp[is.infinite(varData.dnpp)] <- naval
-  
-  varData.drh <- readFile(paste(fpath.lpj, "drh.bin", sep=''), ncell.tot, ndays, dyearID)/conversionFactor
-  varData.drh[is.na(varData.drh)] <- naval
-  varData.drh[is.infinite(varData.drh)] <- naval
-  
-  varArray.dnep <- array(naval,c(length(lonseq),length(latseq),ndays))
-  
-  #read in yearly outputs
-  varData.firec <- readFile(paste(fpath.lpj, "firec.bin", sep=''), ncell.tot, 1, yearID)/conversionFactor
-  varData.firec[is.na(varData.firec)] <- naval
-  varData.firec[is.infinite(varData.firec)] <- naval
-  
-  varData.lucc <- readFile(paste(fpath.lpj, "flux_luc.bin", sep=''), ncell.tot, 1, yearID)/conversionFactor
-  varData.lucc[is.na(varData.lucc)] <- naval
-  varData.lucc[is.infinite(varData.lucc)] <- naval
-
-  varData.harvc <- readFile(paste(fpath.lpj, "flux_harvest.bin", sep=''), ncell.tot, 1, yearID)/conversionFactor
-  varData.harvc[is.na(varData.harvc)] <- naval
-  varData.harvc[is.infinite(varData.harvc)] <- naval
-  
-  varData.estabc <- readFile(paste(fpath.lpj, "flux_estab.bin", sep=''), ncell.tot, 1, yearID)/conversionFactor
-  varData.estabc[is.na(varData.estabc)] <- naval
-  varData.estabc[is.infinite(varData.estabc)] <- naval
-  
   if(is.leapyear(year)){
     for(day in 1:(ndays+1)){
       print(day)
       if(day < 60){
         for(cell in 1:ncell.tot){
           varArray.dch4e[lonmatch[cell], latmatch[cell], day] <- varData.dch4e[cell,day]
-          varArray.dnep[lonmatch[cell],latmatch[cell],day] <- varData.drh[cell,day] - varData.dnpp[cell,day] + (varData.firec[cell,1] + varData.lucc[cell,1] + varData.harvc[cell,1] - varData.estabc[cell,1])/365
         }
         put.var.ncdf( ncnew.ch4e, varCH4ENC, start=c(1,1,day+(dyearID-1)*ndays + count.leaps), count=c(-1,-1,1) , varArray.dch4e[,,day])
-        put.var.ncdf(ncnew.nep,varNEPNC,start = c(1,1,day+(dyearID-1)*ndays + count.leaps), count=c(-1,-1,1), varArray.dnep[,,day])
         
       }else if(day == 60){
         put.var.ncdf( ncnew.ch4e, varCH4ENC, start=c(1,1,day+(dyearID-1)*ndays + count.leaps), count=c(-1,-1,1) , varArray.dch4e[,,59])
-        put.var.ncdf( ncnew.nep, varNEPNC, start=c(1,1,day+(dyearID-1)*ndays + count.leaps), count=c(-1,-1,1) , varArray.dnep[,,59])
         
       }else{
         for(cell in 1:ncell.tot){
           varArray.dch4e[lonmatch[cell], latmatch[cell], day-1] <- varData.dch4e[cell,day-1]
-          varArray.dnep[lonmatch[cell],latmatch[cell],day-1] <- varData.drh[cell,day-1] - varData.dnpp[cell,day-1] + (varData.firec[cell,1] + varData.lucc[cell,1] + varData.harvc[cell,1] - varData.estabc[cell,1])/365
         }
         put.var.ncdf( ncnew.ch4e, varCH4ENC, start=c(1,1,day+(dyearID-1)*ndays + count.leaps), count=c(-1,-1,1) , varArray.dch4e[,,day-1])
-        put.var.ncdf( ncnew.nep, varNEPNC, start=c(1,1,day+(dyearID-1)*ndays + count.leaps), count=c(-1,-1,1) , varArray.dnep[,,day-1])
       }
     }
   }else{
@@ -140,10 +109,8 @@ for(year in dstartYear:dendYear){
       print(day)
       for(cell in 1:ncell.tot){
         varArray.dch4e[lonmatch[cell], latmatch[cell], day] <- varData.dch4e[cell,day]
-        varArray.dnep[lonmatch[cell],latmatch[cell],day] <- varData.drh[cell,day] - varData.dnpp[cell,day] + (varData.firec[cell,1] + varData.lucc[cell,1] + varData.harvc[cell,1] - varData.estabc[cell,1])/365
       }
       put.var.ncdf( ncnew.ch4e, varCH4ENC, start=c(1,1,day+(dyearID-1)*ndays + count.leaps), count=c(-1,-1,1) , varArray.dch4e[,,day])
-      put.var.ncdf( ncnew.nep, varNEPNC, start=c(1,1,day+(dyearID-1)*ndays + count.leaps), count=c(-1,-1,1) , varArray.dnep[,,day])
       
     }
   }
@@ -156,11 +123,6 @@ att.put.ncdf(ncnew.ch4e, 0, "run_number", "01")
 att.put.ncdf(ncnew.ch4e, 0, "contact", "zhen.zhang@wsl.ch")
 att.put.ncdf(ncnew.ch4e, 0, "institution", "WSL&MSU")
 
-att.put.ncdf(ncnew.nep, 0, "project", "MAIOLICA-II")
-att.put.ncdf(ncnew.nep, 0, "model", "LPJwsl")
-att.put.ncdf(ncnew.nep, 0, "run_number", "01")
-att.put.ncdf(ncnew.nep, 0, "contact", "zhen.zhang@wsl.ch")
-att.put.ncdf(ncnew.nep, 0, "institution", "WSL&MSU")
 close(ncnew.ch4e)
 
 print(fpath.lpj)
