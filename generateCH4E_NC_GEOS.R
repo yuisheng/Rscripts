@@ -16,7 +16,7 @@ is.leapyear <- function(year){
 
 
 #Set parameters
-fpath.lpj <- "/mnt/lustrefs/store/zhen.zhang/output/ERA-Interim/ERA_2016_USDA_DLIT_PERMAFROST/merge/"
+fpath.lpj <- "/Users/zhang/Research/data/output/JRA55/JRA55_2016_USDA_DLIT_PERMAFROST/merge/"
 #This is start year of binary output of LPJ
 startYear <- 1901
 endYear <- 2016
@@ -77,7 +77,7 @@ ncnew.ch4e <- create.ncdf( paste(fpath.lpj, "LPJ_ch4e_daily_GEOS_",dstartYear,"-
 for(year in dstartYear:dendYear){
   yearID  <- year - startYear + 1 
   dyearID <- year - dstartYear + 1
-  count.leaps <- length(which(is.leapyear(seq(dstartYear,dstartYear+dyearID-2)))) #count leap years between dstartyear and year
+  #count.leaps <- length(which(is.leapyear(seq(dstartYear,dstartYear+dyearID-2)))) #count leap years between dstartyear and year
   
   #read in daily outputs
   varData.dch4e <- readFile(paste(fpath.lpj, "dch4e.bin", sep=''), ncell.tot, ndays, dyearID)/conversionFactor
@@ -92,16 +92,16 @@ for(year in dstartYear:dendYear){
         for(cell in 1:ncell.tot){
           varArray.dch4e[lonmatch[cell], latmatch[cell], day] <- varData.dch4e[cell,day]
         }
-        put.var.ncdf( ncnew.ch4e, varCH4ENC, start=c(1,1,day+(dyearID-1)*ndays + count.leaps), count=c(-1,-1,1) , varArray.dch4e[,,day])
+        put.var.ncdf( ncnew.ch4e, varCH4ENC, start=c(1,1,day+(dyearID-1)*ndays), count=c(-1,-1,1) , varArray.dch4e[,,day])
         
       }else if(day == 60){
-        put.var.ncdf( ncnew.ch4e, varCH4ENC, start=c(1,1,day+(dyearID-1)*ndays + count.leaps), count=c(-1,-1,1) , varArray.dch4e[,,59])
+        put.var.ncdf( ncnew.ch4e, varCH4ENC, start=c(1,1,day+(dyearID-1)*ndays), count=c(-1,-1,1) , varArray.dch4e[,,59])
         
       }else{
         for(cell in 1:ncell.tot){
           varArray.dch4e[lonmatch[cell], latmatch[cell], day-1] <- varData.dch4e[cell,day-1]
         }
-        put.var.ncdf( ncnew.ch4e, varCH4ENC, start=c(1,1,day+(dyearID-1)*ndays + count.leaps), count=c(-1,-1,1) , varArray.dch4e[,,day-1])
+        put.var.ncdf( ncnew.ch4e, varCH4ENC, start=c(1,1,day+(dyearID-1)*ndays), count=c(-1,-1,1) , varArray.dch4e[,,day-1])
       }
     }
   }else{
@@ -110,7 +110,7 @@ for(year in dstartYear:dendYear){
       for(cell in 1:ncell.tot){
         varArray.dch4e[lonmatch[cell], latmatch[cell], day] <- varData.dch4e[cell,day]
       }
-      put.var.ncdf( ncnew.ch4e, varCH4ENC, start=c(1,1,day+(dyearID-1)*ndays + count.leaps), count=c(-1,-1,1) , varArray.dch4e[,,day])
+      put.var.ncdf( ncnew.ch4e, varCH4ENC, start=c(1,1,day+(dyearID-1)*ndays), count=c(-1,-1,1) , varArray.dch4e[,,day])
       
     }
   }
